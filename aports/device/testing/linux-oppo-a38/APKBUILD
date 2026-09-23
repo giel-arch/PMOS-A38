@@ -1,0 +1,21 @@
+pkgname=linux-oppo-a38
+pkgver=5.10.160
+pkgrel=0
+pkgdesc="OPPO A38 kernel (prebuilt)"
+arch="aarch64"
+options="!check !strip !archcheck !tracedeps pmb:cross-native"
+license="GPL-2.0-only"
+url="https://postmarketos.org"
+depends=""
+makedepends=""
+source="Image.gz"
+
+build() {
+	return 0
+}
+
+package() {
+	# Install the prebuilt kernel image
+	install -Dm644 "$startdir/Image.gz" \
+		"$pkgdir/boot/vmlinuz-oppo-a38"
+}

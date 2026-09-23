@@ -1,0 +1,61 @@
+name: Build postmarketOS (OPPO A38)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git sudo kpartx curl python3 python3-pip openssl
+
+      - name: Clone pmbootstrap
+        run: |
+          git clone https://gitlab.postmarketos.org/postmarketOS/pmbootstrap.git ~/pmbootstrap
+
+      - name: Initialize pmbootstrap (Non-Interactive)
+        run: |
+          cd ~/pmbootstrap
+          # Initialize with default answers to clone the official pmaports
+          yes "" | ./pmbootstrap.py init || true
+          
+          # Copy our custom device and kernel packages into the official pmaports tree
+          cp -r ${{ github.workspace }}/aports/device/testing/* ~/.local/var/pmbootstrap/cache_git/pmaports/device/testing/
+          
+          # Configure pmbootstrap for our device
+          ./pmbootstrap.py config vendor oppo
+          ./pmbootstrap.py config device a38
+          ./pmbootstrap.py config ui plasma-mobile
+          ./pmbootstrap.py config build_pkgs_on_install true
+
+      - name: Generate Checksums
+        run: |
+          cd ~/pmbootstrap
+          ./pmbootstrap.py checksum linux-oppo-a38
+          ./pmbootstrap.py checksum device-oppo-a38
+
+      - name: Build Packages
+        run: |
+          cd ~/pmbootstrap
+          ./pmbootstrap.py build linux-oppo-a38
+          ./pmbootstrap.py build device-oppo-a38
+
+      - name: Build Rootfs Image
+        run: |
+          cd ~/pmbootstrap
+          ./pmbootstrap.py install
+          ./pmbootstrap.py export
+
+      - name: Upload Image Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmOS-oppo-a38-image
+          path: /tmp/postmarketOS-export/
