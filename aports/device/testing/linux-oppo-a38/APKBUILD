@@ -1,6 +1,6 @@
 pkgname=linux-oppo-a38
-pkgver=5.10.160
-pkgrel=3
+pkgver=6.6.30
+pkgrel=0
 pkgdesc="OPPO A38 kernel (prebuilt)"
 arch="aarch64"
 options="!check !strip !archcheck !tracedeps pmb:cross-native"
