@@ -31,8 +31,7 @@ jobs:
           cp -r ${{ github.workspace }}/aports/device/testing/* ~/.local/var/pmbootstrap/cache_git/pmaports/device/testing/
           
           # Configure pmbootstrap for our device
-          ./pmbootstrap.py config vendor oppo
-          ./pmbootstrap.py config device a38
+          ./pmbootstrap.py config device oppo-a38
           ./pmbootstrap.py config ui plasma-mobile
           ./pmbootstrap.py config build_pkgs_on_install true
 
