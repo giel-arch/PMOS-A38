@@ -50,7 +50,7 @@ jobs:
       - name: Build Rootfs Image
         run: |
           cd ~/pmbootstrap
-          ./pmbootstrap.py install
+          echo -e "123456\n123456" | ./pmbootstrap.py install
           ./pmbootstrap.py export
 
       - name: Upload Image Artifacts
