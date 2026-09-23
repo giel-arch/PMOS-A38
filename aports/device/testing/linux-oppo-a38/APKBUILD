@@ -1,6 +1,6 @@
 pkgname=linux-oppo-a38
 pkgver=5.10.160
-pkgrel=2
+pkgrel=3
 pkgdesc="OPPO A38 kernel (prebuilt)"
 arch="aarch64"
 options="!check !strip !archcheck !tracedeps pmb:cross-native"
@@ -15,13 +15,20 @@ build() {
 }
 
 package() {
+	_flavor="oppo-a38"
+	_kver="$pkgver-$_flavor"
+
 	# Install the prebuilt kernel image
 	install -Dm644 "$startdir/Image.gz" \
-		"$pkgdir/boot/vmlinuz-oppo-a38"
+		"$pkgdir/boot/vmlinuz-$_flavor"
 	
 	# Create dummy modules directory to prevent mkinitfs from crashing
-	_kver="$pkgver-oppo-a38"
 	mkdir -p "$pkgdir/lib/modules/$_kver"
 	touch "$pkgdir/lib/modules/$_kver/modules.order"
 	touch "$pkgdir/lib/modules/$_kver/modules.builtin"
+	touch "$pkgdir/lib/modules/$_kver/modules.builtin.modinfo"
+
+	# Satisfy postmarketOS mkinitfs
+	mkdir -p "$pkgdir/usr/share/kernel/$_flavor"
+	echo "$_kver" > "$pkgdir/usr/share/kernel/$_flavor/kernel.release"
 }
