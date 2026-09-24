@@ -66,10 +66,8 @@ jobs:
           ./magiskboot unpack init_boot_b.bin
           
           # The initramfs from pmbootstrap is gzip-compressed.
-          # Decompress it to get raw CPIO for magiskboot.
-          mv initramfs initramfs.gz
-          gunzip initramfs.gz
-          cp initramfs ramdisk.cpio
+          # Use zcat to decompress it into ramdisk.cpio for magiskboot.
+          zcat initramfs > ramdisk.cpio
           
           # Repack with pmOS initramfs
           ./magiskboot repack init_boot_b.bin init_boot-pmos.img
