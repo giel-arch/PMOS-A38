@@ -76,7 +76,10 @@ jobs:
           rm lib
           mv usr/lib lib
           ln -s ../lib usr/lib
-          find . -print0 | cpio --null -o -H newc | gzip -9 > ../ramdisk.cpio
+          # We output RAW cpio. magiskboot will automatically compress it to lz4_legacy
+          # to match the original init_boot format. This is CRITICAL because the kernel
+          # fails to extract a gzip archive if it follows an lz4_legacy vendor_boot ramdisk!
+          find . -print0 | cpio --null -o -H newc > ../ramdisk.cpio
           cd ..
           rm -rf pmos_ramdisk
 
