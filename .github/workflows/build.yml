@@ -70,6 +70,17 @@ jobs:
           cp initramfs ramdisk.cpio
           ./magiskboot repack init_boot_b.bin init_boot-pmos.img
           rm -f ramdisk.cpio kernel dtb boot_signature header
+
+          # --- Repack vendor_boot (Empty Ramdisk) ---
+          # Android's vendor_boot contains a /lib directory. pmOS requires /lib to be a symlink to /usr/lib.
+          # If we don't empty vendor_boot's ramdisk, it will block pmOS from creating the /lib symlink,
+          # causing the kernel to fail finding the dynamic linker and fail executing /init with -ENOENT (-2).
+          ./magiskboot unpack vendor_boot_b.bin
+          mkdir -p vendor_ramdisk
+          # Create empty files to overwrite the vendor ramdisks with 0 bytes
+          touch vendor_ramdisk/ramdisk.cpio vendor_ramdisk/recovery.cpio
+          ./magiskboot repack vendor_boot_b.bin vendor_boot-pmos.img
+          rm -rf vendor_ramdisk dtb boot_signature header
           
           # --- Repack boot ---
           ./magiskboot unpack boot_b.bin
