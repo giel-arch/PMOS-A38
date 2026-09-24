@@ -65,9 +65,9 @@ jobs:
           
           # --- Repack init_boot ---
           ./magiskboot unpack init_boot_b.bin
-          # The initramfs from pmbootstrap is gzip-compressed.
-          # Use zcat to decompress it into ramdisk.cpio for magiskboot.
-          zcat initramfs > ramdisk.cpio
+          # The initramfs from pmbootstrap is ALREADY gzip-compressed.
+          # We must pass it as-is so magiskboot doesn't recompress it to lz4_legacy (which the kernel fails to unpack).
+          cp initramfs ramdisk.cpio
           ./magiskboot repack init_boot_b.bin init_boot-pmos.img
           rm -f ramdisk.cpio kernel dtb boot_signature header
           
