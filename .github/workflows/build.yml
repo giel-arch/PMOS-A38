@@ -63,24 +63,26 @@ jobs:
           cp ${{ github.workspace }}/assets/boot_b.bin .
           chmod +x magiskboot
           
+          # --- Fix pmOS initramfs /lib collision ---
+          # Android's vendor_boot extracts a /lib directory (for /lib/modules).
+          # pmOS initramfs has /lib as a symlink to /usr/lib. 
+          # The kernel's cpio extractor fails to overwrite the existing /lib directory with a symlink,
+          # leaving pmOS without its dynamic linker. We fix this by swapping them in pmOS's ramdisk.
+          mkdir pmos_ramdisk
+          cd pmos_ramdisk
+          zcat ../initramfs | cpio -idm
+          rm lib
+          mv usr/lib lib
+          ln -s ../lib usr/lib
+          find . -print0 | cpio --null -o -H newc | gzip -9 > ../ramdisk.cpio
+          cd ..
+          rm -rf pmos_ramdisk
+
           # --- Repack init_boot ---
           ./magiskboot unpack init_boot_b.bin
-          # The initramfs from pmbootstrap is ALREADY gzip-compressed.
-          # We must pass it as-is so magiskboot doesn't recompress it to lz4_legacy (which the kernel fails to unpack).
-          cp initramfs ramdisk.cpio
+          # We pass our fixed ramdisk.cpio (which is gzip compressed). magiskboot detects gzip and preserves it.
           ./magiskboot repack init_boot_b.bin init_boot-pmos.img
           rm -f ramdisk.cpio kernel dtb boot_signature header
-
-          # --- Repack vendor_boot (Empty Ramdisk) ---
-          # Android's vendor_boot contains a /lib directory. pmOS requires /lib to be a symlink to /usr/lib.
-          # If we don't empty vendor_boot's ramdisk, it will block pmOS from creating the /lib symlink,
-          # causing the kernel to fail finding the dynamic linker and fail executing /init with -ENOENT (-2).
-          ./magiskboot unpack vendor_boot_b.bin
-          mkdir -p vendor_ramdisk
-          # Create empty files to overwrite the vendor ramdisks with 0 bytes
-          touch vendor_ramdisk/ramdisk.cpio vendor_ramdisk/recovery.cpio
-          ./magiskboot repack vendor_boot_b.bin vendor_boot-pmos.img
-          rm -rf vendor_ramdisk dtb boot_signature header
           
           # --- Repack boot ---
           ./magiskboot unpack boot_b.bin
