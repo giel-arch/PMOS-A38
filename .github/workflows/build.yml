@@ -53,31 +53,35 @@ jobs:
           echo -e "123456\n123456" | ./pmbootstrap.py install || { tail -n 200 ~/.local/var/pmbootstrap/log.txt; exit 1; }
           ./pmbootstrap.py export
 
-      - name: Generate init_boot image
+      - name: Generate init_boot and boot images
         run: |
           cd /tmp/postmarketOS-export/
           
-          # Copy magiskboot and original init_boot
+          # Copy magiskboot and original images
           cp ${{ github.workspace }}/assets/magiskboot .
           cp ${{ github.workspace }}/assets/init_boot_b.bin .
+          cp ${{ github.workspace }}/assets/boot_b.bin .
           chmod +x magiskboot
           
-          # Unpack original init_boot
+          # --- Repack init_boot ---
           ./magiskboot unpack init_boot_b.bin
-          
           # The initramfs from pmbootstrap is gzip-compressed.
           # Use zcat to decompress it into ramdisk.cpio for magiskboot.
           zcat initramfs > ramdisk.cpio
-          
-          # Repack with pmOS initramfs
           ./magiskboot repack init_boot_b.bin init_boot-pmos.img
+          rm -f ramdisk.cpio kernel dtb boot_signature header
           
-          # Show the result
-          ls -lh init_boot-pmos.img
-          file init_boot-pmos.img
+          # --- Repack boot ---
+          ./magiskboot unpack boot_b.bin
+          # Replace original kernel with pmOS kernel
+          cp vmlinuz-oppo-a38 kernel
+          ./magiskboot repack boot_b.bin boot-pmos.img
           
-          # Clean up magiskboot work files (keep init_boot-pmos.img & initramfs-extra)
-          rm -f magiskboot init_boot_b.bin ramdisk.cpio kernel dtb boot_signature header
+          # Clean up workspace
+          rm -f magiskboot init_boot_b.bin boot_b.bin ramdisk.cpio kernel dtb boot_signature header
+          
+          # Remove pmbootstrap's invalid boot.img to avoid confusion
+          rm -f boot.img
 
       - name: Upload Image Artifacts
         uses: actions/upload-artifact@v4
