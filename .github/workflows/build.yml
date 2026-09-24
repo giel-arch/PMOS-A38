@@ -53,6 +53,22 @@ jobs:
           echo -e "123456\n123456" | ./pmbootstrap.py install || { tail -n 200 ~/.local/var/pmbootstrap/log.txt; exit 1; }
           ./pmbootstrap.py export
 
+      - name: Generate init_boot image
+        run: |
+          # Copy magiskboot and original init_boot to export dir
+          cp ${{ github.workspace }}/assets/magiskboot /tmp/postmarketOS-export/
+          cp ${{ github.workspace }}/assets/init_boot_b.bin /tmp/postmarketOS-export/
+          cd /tmp/postmarketOS-export/
+          chmod +x magiskboot
+          
+          # Unpack, swap ramdisk, and repack
+          ./magiskboot unpack init_boot_b.bin
+          cp initramfs ramdisk.cpio
+          ./magiskboot repack init_boot_b.bin init_boot-pmos.img
+          
+          # Clean up magiskboot artifacts
+          rm -f magiskboot init_boot_b.bin ramdisk.cpio kernel dtb boot_signature
+
       - name: Upload Image Artifacts
         uses: actions/upload-artifact@v4
         with:
