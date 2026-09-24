@@ -44,6 +44,7 @@ jobs:
       - name: Build Packages
         run: |
           cd ~/pmbootstrap
+          ./pmbootstrap.py build postmarketos-mkinitfs || true
           ./pmbootstrap.py build linux-oppo-a38
           ./pmbootstrap.py build device-oppo-a38
 
