@@ -63,11 +63,13 @@ jobs:
           cp ${{ github.workspace }}/assets/boot_b.bin .
           chmod +x magiskboot
           
+          # --- Repack init_boot ---
+          ./magiskboot unpack init_boot_b.bin
+
           # --- Fix pmOS initramfs /lib collision ---
           # Android's vendor_boot extracts a /lib directory (for /lib/modules).
           # pmOS initramfs has /lib as a symlink to /usr/lib. 
-          # The kernel's cpio extractor fails to overwrite the existing /lib directory with a symlink,
-          # leaving pmOS without its dynamic linker. We fix this by swapping them in pmOS's ramdisk.
+          # We fix this by swapping them in pmOS's ramdisk.
           mkdir pmos_ramdisk
           cd pmos_ramdisk
           zcat ../initramfs | cpio -idm
@@ -78,8 +80,6 @@ jobs:
           cd ..
           rm -rf pmos_ramdisk
 
-          # --- Repack init_boot ---
-          ./magiskboot unpack init_boot_b.bin
           # We pass our fixed ramdisk.cpio (which is gzip compressed). magiskboot detects gzip and preserves it.
           ./magiskboot repack init_boot_b.bin init_boot-pmos.img
           rm -f ramdisk.cpio kernel dtb boot_signature header
