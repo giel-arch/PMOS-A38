@@ -44,7 +44,6 @@ jobs:
       - name: Build Packages
         run: |
           cd ~/pmbootstrap
-          ./pmbootstrap.py build postmarketos-mkinitfs || true
           ./pmbootstrap.py build linux-oppo-a38
           ./pmbootstrap.py build device-oppo-a38
 
@@ -56,19 +55,31 @@ jobs:
 
       - name: Generate init_boot image
         run: |
-          # Copy magiskboot and original init_boot to export dir
-          cp ${{ github.workspace }}/assets/magiskboot /tmp/postmarketOS-export/
-          cp ${{ github.workspace }}/assets/init_boot_b.bin /tmp/postmarketOS-export/
           cd /tmp/postmarketOS-export/
+          
+          # Copy magiskboot and original init_boot
+          cp ${{ github.workspace }}/assets/magiskboot .
+          cp ${{ github.workspace }}/assets/init_boot_b.bin .
           chmod +x magiskboot
           
-          # Unpack, swap ramdisk, and repack
+          # Unpack original init_boot
           ./magiskboot unpack init_boot_b.bin
+          
+          # The initramfs from pmbootstrap is gzip-compressed.
+          # Decompress it to get raw CPIO for magiskboot.
+          mv initramfs initramfs.gz
+          gunzip initramfs.gz
           cp initramfs ramdisk.cpio
+          
+          # Repack with pmOS initramfs
           ./magiskboot repack init_boot_b.bin init_boot-pmos.img
           
-          # Clean up magiskboot artifacts
-          rm -f magiskboot init_boot_b.bin ramdisk.cpio kernel dtb boot_signature
+          # Show the result
+          ls -lh init_boot-pmos.img
+          file init_boot-pmos.img
+          
+          # Clean up magiskboot work files (keep init_boot-pmos.img & initramfs-extra)
+          rm -f magiskboot init_boot_b.bin ramdisk.cpio kernel dtb boot_signature header
 
       - name: Upload Image Artifacts
         uses: actions/upload-artifact@v4
