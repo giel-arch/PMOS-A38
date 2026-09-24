@@ -2,12 +2,12 @@
 pkgname=device-oppo-a38
 pkgdesc="OPPO A38"
 pkgver=1
-pkgrel=1
+pkgrel=2
 url="https://postmarketos.org"
 license="MIT"
 arch="aarch64"
 options="!check !archcheck"
-depends="postmarketos-base linux-oppo-a38 mkbootimg postmarketos-initramfs-minimal"
+depends="postmarketos-base linux-oppo-a38 mkbootimg"
 makedepends="devicepkg-dev"
 source="deviceinfo"
 
