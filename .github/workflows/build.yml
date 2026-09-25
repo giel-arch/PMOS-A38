@@ -76,6 +76,18 @@ jobs:
           rm lib
           mv usr/lib lib
           ln -s ../lib usr/lib
+          
+          # Inject module loader for GKI out-of-tree modules
+          sed -i '/mount_subpartitions/i \
+          # [pmOS-rd] Inject GKI vendor modules\n\
+          if [ -f /lib/modules/modules.load ]; then\n\
+              echo "Loading vendor modules..."\n\
+              while read -r mod; do\n\
+                  [ -f "/lib/modules/$mod" ] && insmod "/lib/modules/$mod"\n\
+              done < /lib/modules/modules.load\n\
+              sleep 1\n\
+          fi\n' init
+
           # We output RAW cpio. magiskboot will automatically compress it to lz4_legacy
           # to match the original init_boot format. This is CRITICAL because the kernel
           # fails to extract a gzip archive if it follows an lz4_legacy vendor_boot ramdisk!
